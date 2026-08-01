@@ -32,6 +32,9 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
 order = np.argsort(X_test[:, 0])
+# It does not sort the data itself. Instead, it returns the indices that would sort the data.
+# When you use the same order on multiple arrays that represent the same observations, they all get rearranged in the same way,
+# so the correspondence between features and targets is preserved.
 
 plt.scatter(X_test[:, 0], y_test[:, 0], color="black", label="Actual")
 
