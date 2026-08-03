@@ -1,11 +1,18 @@
 from datetime import datetime
 
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    roc_auc_score,
+    roc_curve,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, OrdinalEncoder
@@ -19,7 +26,7 @@ pumpkins = pumpkins.loc[:, columns_to_select]
 # dropping null values
 pumpkins.dropna(inplace=True)
 
-palette = {
+"""palette = {
     "ORANGE": "orange",
     "WHITE": "wheat",
 }
@@ -31,7 +38,7 @@ sns.catplot(
     kind="count",
     palette=palette,
 )
-plt.show()
+plt.show()"""
 
 
 # ordinal encoding
@@ -62,7 +69,7 @@ encoded_pumpkins = encoded_features.assign(Color=encoded_label)
 
 # plotting o visualize the relationships between Item Size, Variety and Color in a categorical plot.
 # To better plot the data we'll be using the encoded Item Size column and the unencoded Variety column
-
+"""
 palette = {
     "ORANGE": "orange",
     "WHITE": "wheat",
@@ -97,4 +104,47 @@ sns.swarmplot(
     legend=False,
 )
 
+plt.show()"""
+# Linear regression predicts a number. Logistic regression predicts a class.
+# now we can use the encoded_pumpkins dataframe to train a logistic regression model to predict the color of a pumpkin based on its features
+
+X = encoded_pumpkins[encoded_pumpkins.columns.difference(["Color"])]
+y = encoded_pumpkins["Color"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+
+print(classification_report(y_test, predictions))
+print("Predicted labels: ", predictions)
+print("F1-score: ", f1_score(y_test, predictions))
+
+# a confusion matrix for better comprehension of the model's performance
+# remember that it is       0	1
+#                       0	TN	FP
+#                       1	FN	TP
+confusion_matrix(y_test, predictions)
+print("Confusion Matrix:\n", confusion_matrix(y_test, predictions))
+
+# Precision = tp / (tp + fp)
+# Recall = tp / (tp + fn)
+# F1-score = (2 * precision * recall)/(precision + recall)
+# Accuracy: (TP + TN)/(TP + TN + FP + FN)
+
+# How to do the ROC curve
+y_scores = model.predict_proba(X_test)
+fpr, tpr, thresholds = roc_curve(y_test, y_scores[:, 1])
+
+fig = plt.figure(figsize=(6, 6))
+plt.plot([0, 1], [0, 1], "k--")
+plt.plot(fpr, tpr)
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve")
 plt.show()
+
+#  use Scikit-learn's roc_auc_score API to compute the actual 'Area Under the Curve' (AUC)
+auc = roc_auc_score(y_test, y_scores[:, 1])
+print(auc)
