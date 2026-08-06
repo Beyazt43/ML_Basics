@@ -9,8 +9,8 @@ df = pd.read_csv("data/cuisines.csv")
 # df.info()
 
 # Plot the data as bars by calling barh()
-plot = df.cuisine.value_counts().plot.barh()
-plt.show()
+# plot = df.cuisine.value_counts().plot.barh()
+# plt.show()
 
 # Find out how much data is available per cuisine and print it out
 thai_df = df[(df.cuisine == "thai")]
@@ -42,3 +42,25 @@ plt.show()
 japanese_ingredient_df = create_ingredient_df(japanese_df)
 plot = japanese_ingredient_df.head(10).plot.barh()
 plt.show()
+
+chinese_ingredient_df = create_ingredient_df(chinese_df)
+chinese_ingredient_df.head(10).plot.barh()
+
+indian_ingredient_df = create_ingredient_df(indian_df)
+indian_ingredient_df.head(10).plot.barh()
+
+korean_ingredient_df = create_ingredient_df(korean_df)
+korean_ingredient_df.head(10).plot.barh()
+
+feature_df = df.drop(["cuisine", "Unnamed: 0", "rice", "garlic", "ginger"], axis=1)
+labels_df = df.cuisine  # .unique()
+feature_df.head()
+
+# use SMOTE - "Synthetic Minority Over-sampling Technique" - to balance the dataset
+oversample = SMOTE()
+transformed_feature_df, transformed_label_df = oversample.fit_resample(
+    feature_df, labels_df
+)
+
+print(f"new label count: {transformed_label_df.value_counts()}")
+print(f"old label count: {df.cuisine.value_counts()}")
