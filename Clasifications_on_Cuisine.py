@@ -64,3 +64,12 @@ transformed_feature_df, transformed_label_df = oversample.fit_resample(
 
 print(f"new label count: {transformed_label_df.value_counts()}")
 print(f"old label count: {df.cuisine.value_counts()}")
+
+# saving my balanced data, including labels and features, into a new dataframe that can be exported into a file
+transformed_df = pd.concat(
+    [transformed_label_df, transformed_feature_df], axis=1, join="outer"
+)
+
+transformed_df.head()
+transformed_df.info()
+transformed_df.to_csv("data/cleaned_cuisines.csv")
