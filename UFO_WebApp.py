@@ -56,8 +56,8 @@ print("Accuracy: ", accuracy_score(y_test, predictions))
 print(model.n_iter_)
 
 # Pickle the model
-"""model_filename = "ufo-model.pkl"
+model_filename = "ufo-model.pkl"
 pickle.dump(model, open(model_filename, "wb"))
 
-model = pickle.load(open("ufo-model.pkl", "rb"))
-print(model.predict([[50, 44, -12]]))"""
+model = pickle.load(open("./ufo-model.pkl", "rb"))
+print(model.predict([[50, 44, -12]]))
