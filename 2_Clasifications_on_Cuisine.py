@@ -24,8 +24,9 @@ cuisines_feature_df = cuisines_df.drop(["Unnamed: 0", "cuisine"], axis=1)
 
 # time to split the data
 X_train, X_test, y_train, y_test = train_test_split(
-    cuisines_feature_df, cuisines_label_df, test_size=0.3
+    cuisines_feature_df, cuisines_label_df, test_size=0.3, random_state=42
 )
+# we're going to need to make the result reproducible
 
 # Since you are using the multiclass case, you need to choose what scheme to use and what solver to set
 # Use LogisticRegression with a multiclass setting and the liblinear solver to train.
@@ -35,3 +36,18 @@ model = lr.fit(X_train, np.ravel(y_train))
 
 accuracy = model.score(X_test, y_test)
 print("Accuracy is {}".format(accuracy))
+
+# testing an individual line fo ingredients
+print(f"ingredients: {X_test.iloc[50][X_test.iloc[50] != 0].keys()}")
+print(f"cuisine: {y_test.iloc[50]}")
+
+test = X_test.iloc[50].values.reshape(-1, 1).T
+proba = model.predict_proba(test)
+classes = model.classes_
+resultdf = pd.DataFrame(data=proba, columns=classes)
+
+topPrediction = resultdf.T.sort_values(by=[0], ascending=[False])
+print(topPrediction.head())
+
+y_pred = model.predict(X_test)
+print(classification_report(y_test, y_pred))
