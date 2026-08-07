@@ -25,7 +25,11 @@ X_train, X_test, y_train, y_test = train_test_split(
 C = 10
 # Create different classifiers.
 classifiers = {
-    "Linear SVC": SVC(kernel="linear", C=C, probability=True, random_state=0)
+    "Linear SVC": SVC(kernel="linear", C=C, probability=True, random_state=0),
+    "KNN classifier": KNeighborsClassifier(C),
+    "SVC": SVC(),
+    "RFST": RandomForestClassifier(n_estimators=100),
+    "ADA": AdaBoostClassifier(n_estimators=100),
 }
 
 n_classifiers = len(classifiers)
