@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import LabelEncoder
 
@@ -129,4 +130,44 @@ km.fit(X)
 # Predict the cluster for each data point
 
 y_cluster_kmeans = km.predict(X)
-y_cluster_kmeans
+print(y_cluster_kmeans)
+
+score = metrics.silhouette_score(X, y_cluster_kmeans)
+print("Silhouette score for KMeans clustering: ", score)
+
+# answering the question of how many clusters to use.
+# within-cluster sums of squares measures the squared average distance of all the points within a cluster to the cluster centroid.
+wcss = []
+# the loop will go from K=1 to K=10, and for each value of K, it will fit a KMeans model to the data and calculate the WCSS
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init="k-means++", random_state=42)
+    kmeans.fit(X)
+    wcss.append(kmeans.inertia_)
+
+# this is the elbow method, representing the wcss values for different numbers of clusters
+# we will find the point where the wcss starts to decrease at a slower rate, which is the "elbow" point
+plt.figure(figsize=(10, 5))
+sns.lineplot(x=range(1, 11), y=wcss, marker="o", color="red")
+plt.title("Elbow")
+plt.xlabel("Number of clusters")
+plt.ylabel("WCSS")
+plt.show()
+
+# seeing the clusters as scatter plot to confirm the elbow point of 3
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(X)
+labels = kmeans.predict(X)
+plt.scatter(df["popularity"], df["danceability"], c=labels)
+plt.xlabel("popularity")
+plt.ylabel("danceability")
+plt.show()
+
+labels = kmeans.labels_
+
+correct_labels = sum(y == labels)
+
+print("Result: %d out of %d samples were correctly labeled." % (correct_labels, y.size))
+
+print("Accuracy score: {0:0.2f}".format(correct_labels / float(y.size)))
+
+# from the scatter plot and the accuracy score, we understand that our data is not particularly well-suited to this type of clustering
