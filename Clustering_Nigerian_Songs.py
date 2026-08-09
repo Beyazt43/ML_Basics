@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import LabelEncoder
 
 df = pd.read_csv("data/nigerian-songs.csv")
 # df.info()
@@ -33,7 +35,7 @@ df = df[
 ]
 df = df[(df["popularity"] > 0)]
 top = df["artist_top_genre"].value_counts()
-plt.figure(figsize=(10, 7))
+"""plt.figure(figsize=(10, 7))
 sns.barplot(x=top.index, y=top.values)
 plt.xticks(rotation=45)
 plt.title("Top genres", color="blue")
@@ -54,6 +56,77 @@ g = sns.jointplot(
 
 sns.FacetGrid(df, hue="artist_top_genre", height=5).map(
     plt.scatter, "popularity", "danceability"
-).add_legend()
+).add_legend()"""
+
+# plt.show()
+
+plt.figure(figsize=(20, 20), dpi=200)
+
+plt.subplot(4, 3, 1)
+sns.boxplot(x="popularity", data=df)
+
+plt.subplot(4, 3, 2)
+sns.boxplot(x="acousticness", data=df)
+
+plt.subplot(4, 3, 3)
+sns.boxplot(x="energy", data=df)
+
+plt.subplot(4, 3, 4)
+sns.boxplot(x="instrumentalness", data=df)
+
+plt.subplot(4, 3, 5)
+sns.boxplot(x="liveness", data=df)
+
+plt.subplot(4, 3, 6)
+sns.boxplot(x="loudness", data=df)
+
+plt.subplot(4, 3, 7)
+sns.boxplot(x="speechiness", data=df)
+
+plt.subplot(4, 3, 8)
+sns.boxplot(x="tempo", data=df)
+
+plt.subplot(4, 3, 9)
+sns.boxplot(x="time_signature", data=df)
+
+plt.subplot(4, 3, 10)
+sns.boxplot(x="danceability", data=df)
+
+plt.subplot(4, 3, 11)
+sns.boxplot(x="length", data=df)
+
+plt.subplot(4, 3, 12)
+sns.boxplot(x="release_date", data=df)
 
 plt.show()
+
+le = LabelEncoder()
+
+X = df.loc[
+    :,
+    (
+        "artist_top_genre",
+        "popularity",
+        "danceability",
+        "acousticness",
+        "loudness",
+        "energy",
+    ),
+]
+
+y = df["artist_top_genre"]
+
+X["artist_top_genre"] = le.fit_transform(X["artist_top_genre"])
+
+y = le.transform(y)
+
+nclusters = 3
+seed = 0
+
+km = KMeans(n_clusters=nclusters, random_state=seed)
+km.fit(X)
+
+# Predict the cluster for each data point
+
+y_cluster_kmeans = km.predict(X)
+y_cluster_kmeans
