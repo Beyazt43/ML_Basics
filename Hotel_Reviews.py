@@ -4,14 +4,14 @@ import time
 import pandas as pd
 
 # importing time so the start and end time can be used to calculate file loading time
-print("Loading data file now, this could take a while depending on file size")
+# print("Loading data file now, this could take a while depending on file size")
 start = time.time()
 
 # df is 'DataFrame' - make sure you downloaded the file to the data folder
 df = pd.read_csv("data/Hotel_Reviews.csv")
 end = time.time()
 
-print("Loading took " + str(round(end - start, 2)) + " seconds")
+# print("Loading took " + str(round(end - start, 2)) + " seconds")
 # print(df.shape)
 # number of unique nationalities in this dataset (227)
 nationality_freq = df["Reviewer_Nationality"].value_counts()
@@ -27,7 +27,7 @@ for nat in nationality_freq[:10].index:
     nat_df = df[df["Reviewer_Nationality"] == nat]
     # Now get the hotel freq
     freq = nat_df["Hotel_Name"].value_counts()
-    print(
+    """print(
         "The most reviewed hotel for "
         + str(nat).strip()
         + " was "
@@ -35,7 +35,7 @@ for nat in nationality_freq[:10].index:
         + " with "
         + str(freq.iloc[0])
         + " reviews."
-    )
+    )"""
 # freq.iloc was necessary to get the first row, not the one with the label 0
 
 
@@ -76,7 +76,7 @@ hotel_freq_df = (
     .reset_index(name="Total_Reviews_Found")
     .sort_values("Total_Reviews_Found", ascending=False)
 )
-print(hotel_freq_df)
+# print(hotel_freq_df)
 
 
 # define a function that takes a row and performs some calculation with it
@@ -98,7 +98,7 @@ review_scores_df = df.drop_duplicates(subset=["Hotel_Name"])
 # Sort the dataframe to find the lowest and highest average score difference
 review_scores_df = review_scores_df.sort_values(by=["Average_Score_Difference"])
 
-print(
+"""print(
     review_scores_df[
         [
             "Average_Score_Difference",
@@ -107,21 +107,102 @@ print(
             "Hotel_Name",
         ]
     ]
-)
+)"""
 
 
 # without lambdas (using a mixture of notations to show you can use both)
 start = time.time()
 no_negative_reviews = sum(df.Negative_Review == "No Negative")
-print("Number of No Negative reviews: " + str(no_negative_reviews))
+# print("Number of No Negative reviews: " + str(no_negative_reviews))
 
 no_positive_reviews = sum(df["Positive_Review"] == "No Positive")
-print("Number of No Positive reviews: " + str(no_positive_reviews))
+# print("Number of No Positive reviews: " + str(no_positive_reviews))
 
 both_no_reviews = sum(
     (df.Negative_Review == "No Negative") & (df.Positive_Review == "No Positive")
 )
-print("Number of both No Negative and No Positive reviews: " + str(both_no_reviews))
+# print("Number of both No Negative and No Positive reviews: " + str(both_no_reviews))
 
 end = time.time()
-print("Sum took " + str(round(end - start, 2)) + " seconds")
+# print("Sum took " + str(round(end - start, 2)) + " seconds")
+
+df.drop(["lat", "lng"], axis=1, inplace=True)
+
+
+def replace_address(row):
+    if "Netherlands" in row["Hotel_Address"]:
+        return "Amsterdam, Netherlands"
+    elif "Barcelona" in row["Hotel_Address"]:
+        return "Barcelona, Spain"
+    elif "United Kingdom" in row["Hotel_Address"]:
+        return "London, United Kingdom"
+    elif "Milan" in row["Hotel_Address"]:
+        return "Milan, Italy"
+    elif "France" in row["Hotel_Address"]:
+        return "Paris, France"
+    elif "Vienna" in row["Hotel_Address"]:
+        return "Vienna, Austria"
+
+
+# Replace all the addresses with a shortened, more useful form
+df["Hotel_Address"] = df.apply(replace_address, axis=1)
+# The sum of the value_counts() should add up to the total number of reviews
+print(df["Hotel_Address"].value_counts())
+
+print(df.groupby("Hotel_Address").agg({"Hotel_Name": "nunique"}))
+
+# Drop `Additional_Number_of_Scoring`
+df.drop(["Additional_Number_of_Scoring"], axis=1, inplace=True)
+# Replace `Total_Number_of_Reviews` and `Average_Score` with our own calculated values
+df["Total_Number_of_Reviews"] = df.groupby("Hotel_Name")["Reviewer_Score"].transform(
+    "count"
+)
+
+df["Average_Score"] = (
+    df.groupby("Hotel_Name")["Reviewer_Score"].transform("mean").round(1)
+)
+
+# Remove opening and closing brackets
+df.Tags = df.Tags.str.strip("[']")
+# remove all quotes too
+df.Tags = df.Tags.str.replace(" ', '", ",", regex=False)
+
+# print(df["Tags"])
+
+# Process the Tags into new columns
+# The file Hotel_Reviews_Tags.py, identifies the most important tags
+# Leisure trip, Couple, Solo traveler, Business trip, Group combined with Travelers with friends,
+# Family with young children, Family with older children, With a pet
+df["Leisure_trip"] = df.Tags.apply(lambda tag: 1 if "Leisure trip" in tag else 0)
+df["Couple"] = df.Tags.apply(lambda tag: 1 if "Couple" in tag else 0)
+df["Solo_traveler"] = df.Tags.apply(lambda tag: 1 if "Solo traveler" in tag else 0)
+df["Business_trip"] = df.Tags.apply(lambda tag: 1 if "Business trip" in tag else 0)
+df["Group"] = df.Tags.apply(
+    lambda tag: 1 if "Group" in tag or "Travelers with friends" in tag else 0
+)
+df["Family_with_young_children"] = df.Tags.apply(
+    lambda tag: 1 if "Family with young children" in tag else 0
+)
+df["Family_with_older_children"] = df.Tags.apply(
+    lambda tag: 1 if "Family with older children" in tag else 0
+)
+df["With_a_pet"] = df.Tags.apply(lambda tag: 1 if "With a pet" in tag else 0)
+# No longer need any of these columns
+df.drop(
+    [
+        "Review_Date",
+        "Review_Total_Negative_Word_Counts",
+        "Review_Total_Positive_Word_Counts",
+        "days_since_review",
+        "Total_Number_of_Reviews_Reviewer_Has_Given",
+    ],
+    axis=1,
+    inplace=True,
+)
+
+
+# Saving new data file with calculated columns
+print("Saving results to Hotel_Reviews_Filtered.csv")
+df.to_csv(r"data/Hotel_Reviews_Filtered.csv", index=False)
+end = time.time()
+print("Filtering took " + str(round(end - start, 2)) + " seconds")
