@@ -6,8 +6,10 @@ import pandas as pd
 # %matplotlib inline
 
 energy = pd.read_csv("data/energy.csv", parse_dates=["timestamp"])
-
+# indexes were 0,1,2.. but with this line "timestamps" became the index
 energy.set_index("timestamp", inplace=True)
+# pd.date_range() generates a sequence of timestamps.
+# freq = h means the timestamps will in one hour intervals
 energy = energy.reindex(
     pd.date_range(
         energy.index.min(),
